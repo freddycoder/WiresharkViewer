@@ -1,0 +1,56 @@
+﻿@page "/"
+@using System.Text
+@using WiresharkViewer.Services
+@inject NetworkReport NetworkReport
+
+<PageTitle>Index</PageTitle>
+
+<h1>WiresharkViewer</h1>
+
+An app that allow to upload a csv file exported from wireshark and view it in a network map.
+
+@if (Error != null)
+{
+    <p style="color: red;">@Error</p>
+}
+
+<UploadFile OnSubmit="(s) => OnFileUploaded(s)" />
+
+@if (pcap != null)
+{
+    <NetworkMap Pcap="pcap" NetworkReport="NetworkReport" />
+}
+
+@code {
+    private string[]? pcap { get; set; }
+
+    private string? Error { get; set; }
+
+    private void OnFileUploaded(string fileContent)
+    {
+        var sb = new StringBuilder();
+
+        try
+        {
+            Error = null;
+
+            pcap = fileContent.Split("\n");
+
+            NetworkReport.GenerateReport(pcap, sb);   
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine(e);
+            if (sb.Length > 0)
+            {
+                Error = sb.ToString() + "\n" + e.Message;
+            }
+            else
+            {
+                Error = e.Message;
+            }
+        }
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,68 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+<h3>Upload File</h3>
+
+<EditForm Model="@fileModel">
+    <InputFile OnChange="HandleFileSelected" />
+
+    <button @onclick="() => HandleValidSubmit()">Upload</button>
+</EditForm>
+
+@if (!loadIsFinish)
+{
+    <p>Chargement en cours...</p>
+}
+
+@code {
+    private UploadFileModel fileModel = new UploadFileModel();
+
+    private bool loadIsFinish = true;
+
+    [Parameter]
+    public Action<string> OnSubmit { get; set; } = (s) => { };
+
+    private void HandleValidSubmit()
+    {
+        Console.WriteLine("HandleValidSubmit");
+
+        if (fileModel.File != null && loadIsFinish)
+        {
+            // Read file contents from a byte array to a string
+
+            var str = System.Text.Encoding.Default.GetString(fileModel.File.FileContents);
+
+            Console.WriteLine("CSV HEAD");
+            Console.WriteLine(str?.Substring(0, 100));
+
+            OnSubmit(str ?? "");
+        }
+        else 
+        {
+            Console.WriteLine($"loadIsFinish: {loadIsFinish}; file: {fileModel.File}");
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        loadIsFinish = false;
+        var file = e.File;
+        var buffer = new byte[file.Size];
+
+        await file.OpenReadStream().ReadAsync(buffer);
+
+        fileModel.File = new Microsoft.AspNetCore.Mvc.FileContentResult(buffer, file.ContentType)
+        {
+            FileDownloadName = file.Name,
+            FileContents = buffer
+        };
+
+        loadIsFinish = true;
+
+        HandleValidSubmit();
+    }
+
+    public class UploadFileModel
+    {
+        public Microsoft.AspNetCore.Mvc.FileContentResult? File { get; set; }
+    }
+}

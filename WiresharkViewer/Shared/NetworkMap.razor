@@ -1,0 +1,70 @@
+@using WiresharkViewer.Services
+@using WiresharkViewer.Services.Models
+<h3>Network Map</h3>
+
+<p>
+    Unique source: @NetworkReport.uniqueIP?.Count(); <br />
+    Total Line: @Pcap.Length;
+</p>
+
+<div class="container">
+    <div class="row">
+        @foreach (var device in NetworkReport.devices ?? Enumerable.Empty<Device>())
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        @device.Name
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">IPv4: @device.IPv4</p>
+                        <p class="card-text">IPv6: @device.IPv6</p>
+                        <p class="card-text">MAC: @device.MAC</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<h3>Network table</h3>
+
+<table class="table table-striped table-responsive">
+    <thead>
+        <tr>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Protocol</th>
+            <th>Length</th>
+            <th>Info</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pcap in NetworkReport.structureCSV ?? Enumerable.Empty<WireSharkCSV>())
+        {
+            <tr>
+                <td>@pcap.Source</td>
+                <td>@pcap.Destination</td>
+                <td>@pcap.Protocol</td>
+                <td>@pcap.Length</td>
+                <td>@pcap.Info</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>CSV Text</h3>
+<p>
+    @foreach (var pcap in Pcap)
+    {
+        <span>@pcap</span><br />
+    }
+</p>
+
+@code {
+    [Parameter]
+    public string[] Pcap { get; set; } = new string[0];
+
+    [Parameter]
+    public NetworkReport NetworkReport { get; set; } = new NetworkReport();
+}
